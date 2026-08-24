@@ -166,11 +166,13 @@ app.get("/", (req, res) => {
 </div>
 
 <script>
+  const path = window.location.pathname;
+  const BASE = path.endsWith('/') ? path.slice(0, -1) : path;
   let allModels = [];
   let selected = new Set();
 
   // Load models
-  fetch('/api/models')
+  fetch(BASE + '/api/models')
     .then(r => r.json())
     .then(data => {
       allModels = data.models || [];
@@ -257,7 +259,7 @@ app.get("/", (req, res) => {
     await Promise.all(ids.map(async id => {
       const cardId = 'card_' + id.replace(/[^a-z0-9]/gi,'_');
       try {
-        const resp = await fetch('/api/chat', {
+        const resp = await fetch(BASE + '/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ modelId: id, messages: [{ role: 'user', content: prompt }] }),
