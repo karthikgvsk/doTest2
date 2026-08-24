@@ -1,9 +1,13 @@
 const express = require("express");
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 
-const DO_TOKEN = process.env.DO_API_TOKEN || "dop_v1_6e0bcbbba9766c0f9487e35f91e7f9fdbefee23ae8730fea1921dc3a5d24f912";
+const DO_TOKEN = process.env.DO_API_TOKEN;
+if (!DO_TOKEN) {
+  console.error("Error: DO_API_TOKEN environment variable is not set.");
+  process.exit(1);
+}
 const INFERENCE_BASE = "https://inference.do-ai.run/v1";
 
 const NON_CHAT_PATTERNS = [
