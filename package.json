@@ -1,17 +1,17 @@
 {
-  "name": "sample-expressjs",
+  "name": "do-model-comparison",
   "version": "1.0.0",
-  "description": "",
+  "description": "DigitalOcean model comparison tool",
   "main": "index.js",
   "scripts": {
+    "build": "cd client && npm install && npm run build",
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node index.js"
   },
   "repository": {
     "type": "git",
-    "url": "github.com/digitalocean/sample-expressjs"
+    "url": "github.com/karthikgvsk/doTest2"
   },
-  "author": "",
   "license": "MIT",
   "engines": {
     "node": ">= 18"
