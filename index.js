@@ -23,9 +23,19 @@ function isChatModel(id) {
 
 app.use(express.json());
 
+// Request logger
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} ${Date.now() - start}ms`);
+  });
+  next();
+});
+
 // --- API routes ---
 
 app.get("/api/models", async (req, res) => {
+  console.log("[GET /api/models] Fetching model list...");
   try {
     const response = await fetch(`${INFERENCE_BASE}/models`, {
       headers: { Authorization: `Bearer ${DO_TOKEN}` },
@@ -34,15 +44,17 @@ app.get("/api/models", async (req, res) => {
     const chatModels = (data.data || [])
       .filter((m) => isChatModel(m.id))
       .map((m) => ({ id: m.id }));
+    console.log(`[GET /api/models] Returned ${chatModels.length} models`);
     res.json({ models: chatModels });
   } catch (err) {
-    console.error(err);
+    console.error("[GET /api/models] Error:", err.message);
     res.status(500).json({ error: "Failed to fetch models" });
   }
 });
 
 app.post("/api/chat", async (req, res) => {
   const { modelId, messages } = req.body;
+  console.log(`[POST /api/chat] model=${modelId} messages=${messages.length}`);
   try {
     const response = await fetch(`${INFERENCE_BASE}/chat/completions`, {
       method: "POST",
@@ -55,11 +67,14 @@ app.post("/api/chat", async (req, res) => {
     const data = await response.json();
     if (!response.ok) {
       const message = data?.error?.message || data?.message || "Request failed";
+      console.error(`[POST /api/chat] Error from DO (${response.status}): ${message}`);
       return res.status(response.status).json({ error: message });
     }
+    const tokens = data.usage?.total_tokens ?? "unknown";
+    console.log(`[POST /api/chat] model=${modelId} status=200 tokens=${tokens}`);
     res.json(data);
   } catch (err) {
-    console.error(err);
+    console.error(`[POST /api/chat] Unexpected error: ${err.message}`);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -272,4 +287,8 @@ app.get("/", (req, res) => {
 </html>`);
 });
 
-app.listen(port, () => console.log(`App running on http://localhost:${port}`));
+app.listen(port, () => {
+  console.log(`[${new Date().toISOString()}] App running on http://localhost:${port}`);
+  console.log(`[${new Date().toISOString()}] Inference base: ${INFERENCE_BASE}`);
+  console.log(`[${new Date().toISOString()}] DO_API_TOKEN: ${DO_TOKEN ? "set ✓" : "missing ✗"}`);
+});
